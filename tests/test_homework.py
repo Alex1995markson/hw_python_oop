@@ -66,9 +66,13 @@ class TestCalculator:
 
     def test_get_week_stats(self, init_limit, data_records, msg_err):
         result = homework.Calculator(init_limit)
+
         records, today, week = data_records
+        print(week)
         for record in records:
             result.add_record(record)
+        print('sd =',week)
+        print('td=',today)
         assert hasattr(result, 'get_week_stats'), msg_err('add_method', 'get_week_stats', 'Calculator')
         assert result.get_week_stats() == week, msg_err('wrong_method', 'get_week_stats', 'Calculator')
 
