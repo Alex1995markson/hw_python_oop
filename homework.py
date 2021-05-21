@@ -144,16 +144,16 @@ def returnTodayDate(day=0, format="%Y-%m-%d"):
     return todayD
 
 
-cash_calculator = CashCalculator(10000)
+# cash_calculator = CashCalculator(10000)
 
-cash_calculator.add_record(Record(amount=2501,
-                                   comment='бар в Сюрене др',
-                                   ))
+# cash_calculator.add_record(Record(amount=2501,
+#                                    comment='бар в Сюрене др',
+#                                    ))
 
-cash_calculator.add_record(Record(amount=1502,
-                                   comment='бар в Юрене др'
-                                   ))
+# cash_calculator.add_record(Record(amount=1502,
+#                                    comment='бар в Юрене др'
+#                                    ))
 
-print(cash_calculator.get_today_stats())
+# print(cash_calculator.get_today_stats())
 
-print(cash_calculator.get_week_stats())
+# print(cash_calculator.get_week_stats())
