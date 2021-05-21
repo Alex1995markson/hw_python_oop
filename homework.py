@@ -27,10 +27,10 @@ class Calculator:
     def get_week_stats(self):
         ''' Вычисление потребляемых/потраченных калорий/денежных средств '''
         sum_of_week = 0
-        week = startWeek(today_i)
+        # week = startWeek(today_i)
         today_i = dt.date.today().strftime(self.date_format)
-        start_W = startWeek(today_i)
-        start_date = dt.datetime.strptime(start_W, self.date_format)
+        week = startWeek(today_i)
+        start_date = dt.datetime.strptime(week, self.date_format)
         end_date = dt.datetime.strptime(today_i, self.date_format)
         delta = timedelta(days=1)
         while start_date <= end_date:
