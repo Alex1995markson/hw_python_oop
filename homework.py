@@ -1,5 +1,6 @@
 import datetime as dt
 from datetime import timedelta  # Refactor
+from typing import Optional
 
 
 class Calculator:
@@ -26,6 +27,7 @@ class Calculator:
     def get_week_stats(self):
         ''' Вычисление потребляемых/потраченных калорий/денежных средств '''
         sum_of_week = 0
+        week = startWeek(today_i)
         today_i = dt.date.today().strftime(self.date_format)
         start_W = startWeek(today_i)
         start_date = dt.datetime.strptime(start_W, self.date_format)
@@ -107,7 +109,7 @@ class Record:
     date_format = '%d.%m.%Y'
     today = dt.datetime.now().strftime(date_format)
 
-    def __init__(self, amount, comment, date=today):
+    def __init__(self, amount, comment, date: Optional[str] = None):
         self.amount = amount
         self.comment = comment
         self.date = dt.datetime.strptime(date, self.date_format).date()
