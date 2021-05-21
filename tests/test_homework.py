@@ -1,4 +1,6 @@
 import re
+import inspect
+from typing import Optional
 from datetime import datetime
 
 import pytest
@@ -23,6 +25,28 @@ class TestRecord:
         assert result.comment == kwargs.get('comment', ''), msg_err('wrong_attr', 'comment', 'Record')
         assert hasattr(result, 'date'), msg_err('add_attr', 'date', 'Record')
         if 'date' in kwargs:
+            date_default_annotation_arg = inspect.Parameter(
+                'date',
+                inspect.Parameter.KEYWORD_ONLY,
+                default=None,
+                annotation=Optional[str],
+            )
+            date_default_arg = inspect.Parameter(
+                'date',
+                inspect.Parameter.KEYWORD_ONLY,
+                default=None,
+            )
+            inspect_signature = str(inspect.signature(homework.Record).parameters['date'])
+            assert (
+                inspect_signature
+                == str(date_default_annotation_arg)
+                or
+                inspect_signature
+                == str(date_default_arg)
+            ) , (
+                'В качестве дефолтного аргумента для даты '
+                'не должно быть посчитанное значение или пустая строка'
+            )
             assert result.date == datetime.strptime(kwargs['date'], '%d.%m.%Y').date(), (
                 msg_err('wrong_attr', 'date', 'Record', ', свойство должно быть датой')
             )
@@ -66,15 +90,16 @@ class TestCalculator:
 
     def test_get_week_stats(self, init_limit, data_records, msg_err):
         result = homework.Calculator(init_limit)
-
         records, today, week = data_records
-        print(week)
         for record in records:
             result.add_record(record)
-        print('sd =',week)
-        print('td=',today)
         assert hasattr(result, 'get_week_stats'), msg_err('add_method', 'get_week_stats', 'Calculator')
         assert result.get_week_stats() == week, msg_err('wrong_method', 'get_week_stats', 'Calculator')
+        get_week_stats_inspect = inspect.getsource(result.get_week_stats)
+        assert (
+            'days=7' in get_week_stats_inspect or
+            'weeks=1' in get_week_stats_inspect
+        ), 'Необходимо считать сколько денег потрачено за последние 7 дней'
 
     def test_get_calories_remained(self, init_limit, msg_err):
         result = homework.Calculator(init_limit)

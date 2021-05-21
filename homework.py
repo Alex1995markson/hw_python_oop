@@ -5,6 +5,7 @@ from typing import Optional
 
 class Calculator:
     date_format = '%Y-%m-%d'
+    delta_week = dt.timedelta(days=7)
 
     def __init__(self, limit):
         self.limit = limit
@@ -24,22 +25,30 @@ class Calculator:
 
         return sum_day
 
-    def get_week_stats(self):
-        ''' Вычисление потребляемых/потраченных калорий/денежных средств '''
-        sum_of_week = 0
+    # def get_week_stats(self):
+        # sum_of_week = 0
         # week = startWeek(today_i)
-        today_i = dt.date.today().strftime(self.date_format)
-        week = startWeek(today_i)
-        start_date = dt.datetime.strptime(week, self.date_format)
-        end_date = dt.datetime.strptime(today_i, self.date_format)
-        delta = timedelta(days=1)
-        while start_date <= end_date:
-            today_f = returnTodayDate(start_date)
-            for item in range(len(self.records)):
-                if today_f == self.records[item].date:
-                    sum_of_week += self.records[item].amount
-            start_date += delta
-        return sum_of_week
+        # today_i = dt.date.today().strftime(self.date_format)
+        # week = startWeek(today_i)
+        # start_date = dt.datetime.strptime(week, self.date_format)
+        # end_date = dt.datetime.strptime(today_i, self.date_format)
+        # delta = timedelta(days=1)
+        # while start_date <= end_date:
+        #     today_f = returnTodayDate(start_date)
+        #     for item in range(len(self.records)):
+        #         if today_f == self.records[item].date:
+        #             sum_of_week += self.records[item].amount
+        #     start_date += delta
+        # return sum_of_week
+
+    def get_week_stats(self):
+        ''' Необходимо считать сколько денег потрачено за последние 7 дней '''
+        today = dt.date.today()
+        delta_week = dt.timedelta(days=7)
+        delta_week = today - delta_week
+        return sum(
+            item.amount for item in self.records if
+            delta_week < item.date <= today)
 
 
 class CashCalculator(Calculator):
@@ -108,11 +117,15 @@ class CaloriesCalculator(Calculator):
 class Record:
     date_format = '%d.%m.%Y'
     today = dt.datetime.now().strftime(date_format)
+    today = dt.datetime.strptime(today, date_format).date()
 
     def __init__(self, amount, comment, date: Optional[str] = None):
         self.amount = amount
         self.comment = comment
-        self.date = dt.datetime.strptime(date, self.date_format).date()
+        if date is None:
+            self.date = dt.date.today()
+        else:
+            self.date = dt.datetime.strptime(date, self.date_format).date()
 
 
 def startWeek(current):
@@ -129,3 +142,18 @@ def returnTodayDate(day=0, format="%Y-%m-%d"):
         todayD = day.strftime(format)
     todayD = dt.datetime.strptime(todayD, format).date()
     return todayD
+
+
+cash_calculator = CashCalculator(10000)
+
+cash_calculator.add_record(Record(amount=2501,
+                                   comment='бар в Сюрене др',
+                                   ))
+
+cash_calculator.add_record(Record(amount=1502,
+                                   comment='бар в Юрене др'
+                                   ))
+
+print(cash_calculator.get_today_stats())
+
+print(cash_calculator.get_week_stats())
