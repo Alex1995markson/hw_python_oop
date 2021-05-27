@@ -1,14 +1,13 @@
 import datetime as dt
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 
 class Calculator:
-    date_format: str = '%Y-%m-%d'
-    delta_week: dt = dt.timedelta(days=7)
+    delta_week: dt.timedelta = dt.timedelta(days=7)
 
     def __init__(self, limit: float):
         self.limit = limit
-        self.records = list()
+        self.records: List = []
 
     def add_record(self, Record) -> None:
         '''Создание логики добавления новой покупки или калории в records'''
@@ -17,67 +16,50 @@ class Calculator:
     def get_today_stats(self) -> float:
         ''' Определяем сколько еще может быть
             потрачено сегодня денег/калорий '''
-        today_i = returnTodayDate()
-        sum_day: float = 0
-        for item in range(len(self.records)):
-            if today_i == self.records[item].date:
-                sum_day += self.records[item].amount
-        return sum_day
+        today_i = dt.date.today()
+        return sum(
+            item.amount for item in self.records if
+            today_i == item.date)
 
     def get_week_stats(self) -> float:
         '''  Считает сколько денег/
             калорий потрачено за последние 7 дней '''
-        today: dt = dt.date.today()
-        delta_week: dt = dt.timedelta(days=7)
-        delta_week: dt = today - delta_week
+        today: dt.date = dt.date.today()
+        delta_week: dt.date = today - dt.timedelta(days=7)
         return sum(
             item.amount for item in self.records if
             delta_week < item.date <= today)
 
 
 class CashCalculator(Calculator):
-    EURO_RATE: float = 73.53  # Курс евро
-    USD_RATE: float = 89.82  # Курс доллара
+    EURO_RATE: float = 73.53
+    USD_RATE: float = 89.82
 
     def __init__(self, limit):
         super().__init__(limit)
 
-    def show(self) -> None:
-        ''' Показать лимит по операции '''
-        print('Limit for operation is', len(self.records))
-
-    def get_currency(self, currency: str) -> float:
-        ''' Вычисление текущей суммы '''
-        money_currency = super().get_today_stats()
-        if currency == 'rub':
-            res = self.limit - money_currency
-            return res
-        elif currency == 'usd':
-            money_currency /= self.USD_RATE
-            res = (self.limit / self.USD_RATE - money_currency)
-            return res
-        elif currency == 'eur':
-            money_currency /= self.EURO_RATE
-            res = (self.limit / self.EURO_RATE - money_currency)
-            return res
-        else:
-            return 'None'
-
     def get_today_cash_remained(self, currency: str) -> str:
         ''' Показать отстаток в валюте из перечисленных rub, euro, usd '''
-        comment: Dict[str, str] = {
-            'rub': 'руб',
-            'eur': 'Euro',
-            'usd': 'USD'
+        comment: Dict[str, List] = {
+            'rub': ['руб', 1],
+            'eur': ['Euro', self.EURO_RATE],
+            'usd': ['USD', self.USD_RATE]
         }
-        res = self.get_currency(currency)
-        if res > 0:
-            return f'На сегодня осталось {round(res,2)} {comment[currency]}'
-        elif res == 0:
-            return 'Денег нет, держись'
-        elif res < 0:
-            return 'Денег нет, держись: твой долг - ' \
-                f'{round(abs(res),2)} {comment[currency]}'
+        try:
+            money_currency = self.get_today_stats() / comment[currency][1]
+            res = self.limit / comment[currency][1] - money_currency
+
+            if res > 0:
+                return f'На сегодня осталось ' \
+                    f'{round(res,2)} {comment[currency][0]}'
+            elif res == 0:
+                return 'Денег нет, держись'
+            elif res < 0:
+                return 'Денег нет, держись: твой долг - ' \
+                    f'{round(abs(res),2)} {comment[currency][0]}'
+        except Exception as e:
+            print(f'Неожиданная ошибка проверьтеесть ли такая валюта: {e}')
+        return 'Error'
 
 
 class CaloriesCalculator(Calculator):
@@ -85,13 +67,9 @@ class CaloriesCalculator(Calculator):
     def __init__(self, limit):
         super().__init__(limit)
 
-    def show(self) -> None:
-        ''' Показать лимит по калориям '''
-        print('Limit for operation is', self.limit)
-
     def get_calories_remained(self) -> str:
         ''' Показать остаток по калориям на текущий день '''
-        sum_of_day: float = super().get_today_stats()
+        sum_of_day: float = self.get_today_stats()
         res: float = self.limit - sum_of_day
         if res > 0:
             return 'Сегодня можно съесть что-нибудь ещё, но с ' \
@@ -110,19 +88,3 @@ class Record:
             self.date = dt.date.today()
         else:
             self.date = dt.datetime.strptime(date, self.date_format).date()
-
-
-def startWeek(current) -> str:
-    ''' Определяем дату начала недели от заданной (то есть 7 дней назад) '''
-    dtc = dt.datetime.strptime(current, '%Y-%m-%d')
-    start = dtc - dt.timedelta(days=7)
-    return start.strftime("%Y-%m-%d")
-
-
-def returnTodayDate(day=0, format="%Y-%m-%d") -> dt:
-    if day == 0:
-        todayD = dt.date.today().strftime(format)
-    else:
-        todayD = day.strftime(format)
-    todayD = dt.datetime.strptime(todayD, format).date()
-    return todayD
