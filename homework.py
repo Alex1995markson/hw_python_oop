@@ -1,5 +1,5 @@
 import datetime as dt
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Tuple
 
 
 class Calculator:
@@ -30,6 +30,10 @@ class Calculator:
             item.amount for item in self.records if
             delta_week < item.date <= today)
 
+    def get_balance(self) -> float:
+        ''' Считаем остаток по счету в валюте по умолчанию '''
+        return self.limit - self.get_today_stats()
+
 
 class CashCalculator(Calculator):
     EURO_RATE: float = 73.53
@@ -40,26 +44,26 @@ class CashCalculator(Calculator):
 
     def get_today_cash_remained(self, currency: str) -> str:
         ''' Показать отстаток в валюте из перечисленных rub, euro, usd '''
-        comment: Dict[str, List] = {
-            'rub': ['руб', 1],
-            'eur': ['Euro', self.EURO_RATE],
-            'usd': ['USD', self.USD_RATE]
+        comment: Dict[str, Tuple] = {
+            'rub': ('руб', 1),
+            'eur': ('Euro', self.EURO_RATE),
+            'usd': ('USD', self.USD_RATE)
         }
-        try:
-            money_currency = self.get_today_stats() / comment[currency][1]
-            res = self.limit / comment[currency][1] - money_currency
+        if currency in comment.keys():
+            curr_name: str = comment[currency][0]
+            curr_v: float = comment[currency][1]
+            res: float = round(self.get_balance() / curr_v, 2)
 
             if res > 0:
-                return f'На сегодня осталось ' \
-                    f'{round(res,2)} {comment[currency][0]}'
+                return (f'На сегодня осталось '
+                        f'{res} {curr_name}')
             elif res == 0:
                 return 'Денег нет, держись'
-            elif res < 0:
-                return 'Денег нет, держись: твой долг - ' \
-                    f'{round(abs(res),2)} {comment[currency][0]}'
-        except Exception as e:
-            print(f'Неожиданная ошибка проверьтеесть ли такая валюта: {e}')
-        return 'Error'
+
+            return ('Денег нет, держись: твой долг - '
+                    f'{abs(res)} {curr_name}')
+
+        return 'Неожиданная ошибка проверьтеесть ли такая валюта'
 
 
 class CaloriesCalculator(Calculator):
@@ -69,11 +73,10 @@ class CaloriesCalculator(Calculator):
 
     def get_calories_remained(self) -> str:
         ''' Показать остаток по калориям на текущий день '''
-        sum_of_day: float = self.get_today_stats()
-        res: float = self.limit - sum_of_day
+        res: float = self.get_balance()
         if res > 0:
-            return 'Сегодня можно съесть что-нибудь ещё, но с ' \
-                f'общей калорийностью не более {res} кКал'
+            return ('Сегодня можно съесть что-нибудь ещё, но с '
+                    f'общей калорийностью не более {res} кКал')
         else:
             return 'Хватит есть!'
 
