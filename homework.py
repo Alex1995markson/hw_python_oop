@@ -49,21 +49,19 @@ class CashCalculator(Calculator):
             'eur': ('Euro', self.EURO_RATE),
             'usd': ('USD', self.USD_RATE)
         }
-        if currency in comment.keys():
-            curr_name: str = comment[currency][0]
-            curr_v: float = comment[currency][1]
-            res: float = round(self.get_balance() / curr_v, 2)
+        if currency not in comment:
+            return 'Неожиданная ошибка проверьтеесть ли такая валюта'
+        curr_name: str = comment[currency][0]
+        curr_v: float = comment[currency][1]
+        res: float = round(self.get_balance() / curr_v, 2)
+        if res > 0:
+            return (f'На сегодня осталось '
+                    f'{res} {curr_name}')
+        if res == 0:
+            return 'Денег нет, держись'
 
-            if res > 0:
-                return (f'На сегодня осталось '
-                        f'{res} {curr_name}')
-            elif res == 0:
-                return 'Денег нет, держись'
-
-            return ('Денег нет, держись: твой долг - '
-                    f'{abs(res)} {curr_name}')
-
-        return 'Неожиданная ошибка проверьтеесть ли такая валюта'
+        return ('Денег нет, держись: твой долг - '
+                f'{abs(res)} {curr_name}')
 
 
 class CaloriesCalculator(Calculator):
